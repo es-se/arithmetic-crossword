@@ -8,40 +8,30 @@
 </head>
 <body>
 
-<div class="app">
-  <header class="header">
-    <h1>四則演算クロス</h1>
-    <button id="newGame">新しく作る</button>
-  </header>
-
-  <div class="controls">
-    <select id="difficulty">
-      <option value="4">普通</option>
-      <option value="5">上級</option>
-      <option value="6">難問</option>
-      <option value="7">超難問</option>
-    </select>
-
-    <select id="mode">
-      <option value="precedence">四則演算優先</option>
-      <option value="ltr">左から計算</option>
-    </select>
-  </div>
+<div class="container">
+  <h1>四則演算クロス</h1>
+  <button onclick="init()">新しく作る</button>
 
   <div id="board"></div>
 </div>
 
 <!-- モーダル -->
 <div id="modal" class="hidden">
-  <div class="modal-box">
-    <div class="pad">
-      <button class="num">1</button><button class="num">2</button><button class="num">3</button>
-      <button class="num">4</button><button class="num">5</button><button class="num">6</button>
-      <button class="num">7</button><button class="num">8</button><button class="num">9</button>
+  <div class="modal">
+    <div class="grid">
+      <button onclick="inputNum(1)">1</button>
+      <button onclick="inputNum(2)">2</button>
+      <button onclick="inputNum(3)">3</button>
+      <button onclick="inputNum(4)">4</button>
+      <button onclick="inputNum(5)">5</button>
+      <button onclick="inputNum(6)">6</button>
+      <button onclick="inputNum(7)">7</button>
+      <button onclick="inputNum(8)">8</button>
+      <button onclick="inputNum(9)">9</button>
     </div>
-    <div class="modal-actions">
-      <button id="delete">消す</button>
-      <button id="close">閉じる</button>
+    <div class="actions">
+      <button onclick="clearCell()">消す</button>
+      <button onclick="closeModal()">閉じる</button>
     </div>
   </div>
 </div>

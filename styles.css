@@ -4,73 +4,63 @@ body{
   background:#0b1b3a;
   color:white;
   font-family:sans-serif;
+  text-align:center;
 }
 
-.app{
-  max-width:100vw;
+.container{
   padding:10px;
-}
-
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.controls{
-  display:flex;
-  gap:10px;
-  margin:10px 0;
 }
 
 #board{
   display:grid;
   gap:4px;
-  width:100%;
+  width:90vw;
+  max-width:500px;
+  margin:20px auto;
   aspect-ratio:1/1;
 }
 
 .cell{
-  background:white;
-  color:black;
+  background:#eee;
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
   font-size:5vw;
-  border-radius:6px;
+  border-radius:8px;
 }
 
 /* modal */
 #modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.5);
+  background:rgba(0,0,0,0.6);
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
-.hidden{ display:none; }
+.hidden{display:none;}
 
-.modal-box{
-  background:#eee;
+.modal{
+  background:#fff;
   padding:20px;
   border-radius:12px;
 }
 
-.pad{
+.grid{
   display:grid;
   grid-template-columns:repeat(3,60px);
   gap:10px;
 }
 
-.pad button{
+.grid button{
   font-size:20px;
   padding:10px;
 }
 
-.modal-actions{
+.actions{
   margin-top:10px;
   display:flex;
   gap:10px;
+  justify-content:center;
 }

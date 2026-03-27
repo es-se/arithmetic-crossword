@@ -1,51 +1,38 @@
 
-const board = document.getElementById('board');
-const modal = document.getElementById('modal');
-
-let size = 4;
 let selected = null;
+let size = 5;
 
-function newGame(){
-  size = parseInt(document.getElementById('difficulty').value);
-  board.innerHTML = "";
-  board.style.gridTemplateColumns = `repeat(${size},1fr)`;
+function init(){
+  const board = document.getElementById('board');
+  board.innerHTML='';
+  board.style.gridTemplateColumns=`repeat(${size},1fr)`;
 
-  for(let r=0;r<size;r++){
-    for(let c=0;c<size;c++){
-      const cell = document.createElement('div');
-      cell.className='cell';
-      cell.dataset.r=r;
-      cell.dataset.c=c;
-
-      cell.onclick = ()=>{
-        selected = cell;
-        modal.classList.remove('hidden');
-      };
-
-      board.appendChild(cell);
-    }
+  for(let i=0;i<size*size;i++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    cell.onclick=()=>{
+      selected=cell;
+      document.getElementById('modal').classList.remove('hidden');
+    };
+    board.appendChild(cell);
   }
 }
 
-document.querySelectorAll('.num').forEach(btn=>{
-  btn.onclick=()=>{
-    if(selected){
-      selected.textContent = btn.textContent;
-    }
-    modal.classList.add('hidden');
-  }
-});
-
-document.getElementById('delete').onclick=()=>{
+function inputNum(n){
   if(selected){
-    selected.textContent="";
+    selected.textContent=n;
   }
-};
+  closeModal();
+}
 
-document.getElementById('close').onclick=()=>{
-  modal.classList.add('hidden');
-};
+function clearCell(){
+  if(selected){
+    selected.textContent='';
+  }
+}
 
-document.getElementById('newGame').onclick=newGame;
+function closeModal(){
+  document.getElementById('modal').classList.add('hidden');
+}
 
-newGame();
+init();
