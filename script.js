@@ -1,21 +1,37 @@
 
-let selected = null;
-let size = 5;
+let selected=null;
+
+const layout = [
+  ["n","+","n","×","n"],
+  ["÷","","-","","+"],
+  ["n","-","n","×","n"],
+  ["×","","-","","+"],
+  ["n","-","n","×","n"]
+];
 
 function init(){
-  const board = document.getElementById('board');
+  const board=document.getElementById('board');
   board.innerHTML='';
-  board.style.gridTemplateColumns=`repeat(${size},1fr)`;
+  board.style.gridTemplateColumns="repeat(5,1fr)";
 
-  for(let i=0;i<size*size;i++){
-    const cell=document.createElement('div');
-    cell.className='cell';
-    cell.onclick=()=>{
-      selected=cell;
-      document.getElementById('modal').classList.remove('hidden');
-    };
-    board.appendChild(cell);
-  }
+  layout.forEach((row,r)=>{
+    row.forEach((val,c)=>{
+      const cell=document.createElement('div');
+
+      if(val==="n"){
+        cell.className="cell num";
+        cell.onclick=()=>{
+          selected=cell;
+          document.getElementById('modal').classList.remove('hidden');
+        };
+      }else{
+        cell.className="cell op";
+        cell.textContent=val;
+      }
+
+      board.appendChild(cell);
+    });
+  });
 }
 
 function inputNum(n){
@@ -27,7 +43,7 @@ function inputNum(n){
 
 function clearCell(){
   if(selected){
-    selected.textContent='';
+    selected.textContent="";
   }
 }
 
