@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>四則演算クロス</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="card hero">
+      <div class="hero-top">
+        <div>
+          <h1>四則演算クロス</h1>
+          <div class="sub">スマホ向け・タップ入力対応・GitHub Pages 配置向け</div>
+        </div>
+        <button class="pill" id="newGameButton" type="button">新しく作る</button>
+      </div>
+    </section>
+
+    <section class="card controls">
+      <div class="field-row">
+        <div class="field">
+          <label for="difficultySelect">難易度</label>
+          <select id="difficultySelect" aria-label="難易度を選択">
+            <option value="easy">簡単</option>
+            <option value="normal" selected>普通</option>
+            <option value="advanced">上級</option>
+            <option value="hard">難問</option>
+            <option value="expert">超難問</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="calcModeSelect">計算ルール</label>
+          <select id="calcModeSelect" aria-label="計算ルールを選択">
+            <option value="precedence" selected>四則演算優先</option>
+            <option value="leftToRight">左から順に計算</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="secondary" id="checkButton" type="button">チェック</button>
+        <button class="secondary" id="clearButton" type="button">入力を消す</button>
+        <button class="secondary" id="answerButton" type="button">答えを見る</button>
+      </div>
+      <div class="message" id="messageArea"></div>
+    </section>
+
+    <section class="board-wrap">
+      <div class="board-area" id="boardArea"></div>
+      <div class="status">
+        <strong id="selectionLabel">マスを選んでください。</strong>
+        <span id="progressLabel">0 / 0</span>
+      </div>
+    </section>
+
+    <section class="keypad" aria-label="数字入力パネル">
+      <div class="keypad-title">
+        <span>選択したマスへ数字を入力します。</span>
+        <span id="keypadHint">0〜9</span>
+      </div>
+      <div class="digit-pad" id="digitPad"></div>
+      <div class="ghost-row">
+        <button class="ghost-btn" id="eraseButton" type="button">1マス消す</button>
+        <button class="ghost-btn" id="closeSelectButton" type="button">選択解除</button>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      横方向・縦方向の式が同時に成立するように数字を入れるゲームです。<br />
+      難易度が上がるほど数字マスが増えます。計算ルールは「四則演算優先」と「左から順」の切替に対応しています。
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
