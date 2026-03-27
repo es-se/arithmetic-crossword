@@ -1,39 +1,73 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>四則演算クロス</title>
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Math Crossword 数字ゲーム</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="app-shell">
+    <header class="hero-card">
+      <div>
+        <h1>Math Crossword</h1>
+        <p>スマホ向け・四則演算の数字ゲーム</p>
+      </div>
+      <button id="newGameButton" class="primary-button">新しく作る</button>
+    </header>
 
-<h1>四則演算クロス</h1>
-<button onclick="init()">新しく作る</button>
+    <section class="control-card">
+      <div class="control-block">
+        <label for="difficultySelect">難易度</label>
+        <select id="difficultySelect">
+          <option value="easy">簡単</option>
+          <option value="normal">普通</option>
+          <option value="advanced">上級</option>
+          <option value="hard">難問</option>
+          <option value="expert">超難問</option>
+        </select>
+      </div>
 
-<div id="board"></div>
+      <div class="control-block">
+        <label for="ruleSelect">計算ルール</label>
+        <select id="ruleSelect">
+          <option value="precedence">四則演算を優先する（×÷先）</option>
+          <option value="leftToRight">左から順に計算する</option>
+        </select>
+      </div>
 
-<!-- モーダル -->
-<div id="modal" class="hidden">
-  <div class="modal">
-    <div class="pad">
-      <button onclick="inputNum(1)">1</button>
-      <button onclick="inputNum(2)">2</button>
-      <button onclick="inputNum(3)">3</button>
-      <button onclick="inputNum(4)">4</button>
-      <button onclick="inputNum(5)">5</button>
-      <button onclick="inputNum(6)">6</button>
-      <button onclick="inputNum(7)">7</button>
-      <button onclick="inputNum(8)">8</button>
-      <button onclick="inputNum(9)">9</button>
-    </div>
-    <div class="actions">
-      <button onclick="clearCell()">消す</button>
-      <button onclick="closeModal()">閉じる</button>
+      <div class="button-row">
+        <button id="checkButton" class="secondary-button">チェック</button>
+        <button id="clearButton" class="secondary-button">入力を消す</button>
+        <button id="answerButton" class="secondary-button">答えを見る</button>
+      </div>
+    </section>
+
+    <section class="board-card">
+      <div class="board-frame">
+        <div id="board" class="board" aria-label="Math Crossword board"></div>
+      </div>
+    </section>
+
+    <footer class="status-card">
+      <p id="statusMessage">マスをタップして数字を入力してください。</p>
+      <p id="progressText">0 / 0</p>
+    </footer>
+  </div>
+
+  <div id="numberModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="modalTitle">数字を選択</h2>
+        <button id="modalCloseButton" class="ghost-button" type="button">閉じる</button>
+      </div>
+      <div class="number-grid" id="numberGrid"></div>
+      <div class="modal-actions">
+        <button id="eraseButton" class="secondary-button" type="button">消す</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script src="script.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
