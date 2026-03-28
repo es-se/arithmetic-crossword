@@ -1,77 +1,35 @@
-/* ===== Layout ===== */
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  background: #0f2747;
-  color: #fff;
-}
+/* ===== 強制的に縮小させない版 ===== */
 
-.app {
-  padding: 12px;
-}
-
-/* ===== Board Wrapper (scroll / drag base) ===== */
+/* 親コンテナ：スクロール専用 */
 .board-panel {
-  overflow: auto;               /* スクロール可能 */
+  overflow: auto !important;
   -webkit-overflow-scrolling: touch;
 }
 
-/* ===== Board ===== */
+/* 盤面：固定サイズで描画 */
 .board {
   display: grid;
-  grid-template-columns: repeat(11, 64px); /* 固定サイズで見やすさ優先 */
+  grid-template-columns: repeat(11, 72px) !important;
+  grid-auto-rows: 72px !important;
   gap: 4px;
-  padding: 8px;
-  width: max-content;           /* 中身サイズに合わせる */
+  width: max-content !important;
+  min-width: max-content !important;
+  transform: none !important;
 }
 
-/* ===== Cell ===== */
+/* セル：絶対固定 */
 .cell {
-  width: 64px;
-  height: 64px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 72px !important;
+  height: 72px !important;
+  min-width: 72px !important;
+  min-height: 72px !important;
+  max-width: 72px !important;
+  max-height: 72px !important;
   font-size: 20px;
-  font-weight: bold;
-  background: #e9e4c9;
-  color: #222;
-  user-select: none;
 }
 
-.cell.operator {
-  background: #dcd6b2;
+/* 念のため縮小系を全部殺す */
+* {
+  zoom: 1 !important;
 }
 
-.cell.equals {
-  background: #cfc8a1;
-}
-
-.cell.empty {
-  background: transparent;
-}
-
-/* ===== Controls ===== */
-.panel {
-  margin-bottom: 12px;
-}
-
-button {
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  background: #2c4b7a;
-  color: #fff;
-}
-
-/* ===== Modal ===== */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-}
-
-.hidden {
-  display: none;
-}
