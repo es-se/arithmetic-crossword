@@ -1,455 +1,646 @@
-const GRID_SIZE = 11;
+(function () {
+  'use strict';
 
-const BOARD_LAYOUT = [
-  ["a", "+", "b", "=", "c", null, "d", "-", "e", "=", "f"],
-  ["/", null, null, null, "-", null, "-", null, null, null, "/"],
-  ["g", null, "h", "+", "i", "-", "j", "=", "k", null, "l"],
-  ["=", null, "-", null, "=", null, "=", null, "+", null, "="],
-  ["m", "-", "n", "=", "o", null, "p", "+", "q", "=", "r"],
-  [null, null, "-", null, null, null, null, null, "+", null, null],
-  ["s", "/", "t", "=", "u", null, "v", "+", "w", "=", "x"],
-  ["*", null, "=", null, "+", null, "/", null, "=", null, "*"],
-  ["y", null, "z", "+", "aa", "-", "ab", "=", "ac", null, "ad"],
-  ["=", null, null, null, "=", null, "=", null, null, null, "="],
-  ["ae", "/", "af", "=", "ag", null, "ah", "*", "ai", "=", "aj"]
-];
+  const LAYOUT = [
+    [n('a'), op('+'), n('b'), eq(), n('c'), null, n('d'), op('-'), n('e'), eq(), n('f')],
+    [op('÷'), null, null, null, op('-'), null, op('-'), null, null, null, op('÷')],
+    [n('g'), null, n('h'), op('+'), n('i'), op('-'), n('j'), eq(), n('k'), null, n('l')],
+    [eq(), null, op('-'), null, eq(), null, eq(), null, op('+'), null, eq()],
+    [n('m'), op('-'), n('n'), eq(), n('o'), null, n('p'), op('+'), n('q'), eq(), n('r')],
+    [null, null, op('-'), null, null, null, null, null, op('+'), null, null],
+    [n('s'), op('÷'), n('t'), eq(), n('u'), null, n('v'), op('+'), n('w'), eq(), n('xv')],
+    [op('x'), null, eq(), null, op('+'), null, op('÷'), null, eq(), null, op('x')],
+    [n('y'), null, n('z'), op('+'), n('aa'), op('-'), n('ab'), eq(), n('ac'), null, n('ad')],
+    [eq(), null, null, null, eq(), null, eq(), null, null, null, eq()],
+    [n('ae'), op('÷'), n('af'), eq(), n('ag'), null, n('ah'), op('x'), n('ai'), eq(), n('aj')]
+  ];
 
-const NUMBER_IDS = [
-  "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o",
-  "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "aa", "ab", "ac", "ad",
-  "ae", "af", "ag", "ah", "ai", "aj"
-];
+  const EQUATIONS = [
+    { id: 'R0L', tokens: ['a', '+', 'b', '=', 'c'] },
+    { id: 'R0R', tokens: ['d', '-', 'e', '=', 'f'] },
+    { id: 'R2', tokens: ['h', '+', 'i', '-', 'j', '=', 'k'] },
+    { id: 'R4L', tokens: ['m', '-', 'n', '=', 'o'] },
+    { id: 'R4R', tokens: ['p', '+', 'q', '=', 'r'] },
+    { id: 'R6L', tokens: ['s', '÷', 't', '=', 'u'] },
+    { id: 'R6R', tokens: ['v', '+', 'w', '=', 'xv'] },
+    { id: 'R8', tokens: ['z', '+', 'aa', '-', 'ab', '=', 'ac'] },
+    { id: 'R10L', tokens: ['ae', '÷', 'af', '=', 'ag'] },
+    { id: 'R10R', tokens: ['ah', 'x', 'ai', '=', 'aj'] },
+    { id: 'C0T', tokens: ['a', '÷', 'g', '=', 'm'] },
+    { id: 'C0B', tokens: ['s', 'x', 'y', '=', 'ae'] },
+    { id: 'C2', tokens: ['h', '-', 'n', '-', 't', '=', 'z'] },
+    { id: 'C4T', tokens: ['c', '-', 'i', '=', 'o'] },
+    { id: 'C4B', tokens: ['u', '+', 'aa', '=', 'ag'] },
+    { id: 'C6T', tokens: ['d', '-', 'j', '=', 'p'] },
+    { id: 'C6B', tokens: ['v', '÷', 'ab', '=', 'ah'] },
+    { id: 'C8', tokens: ['k', '+', 'q', '+', 'w', '=', 'ac'] },
+    { id: 'C10T', tokens: ['f', '÷', 'l', '=', 'r'] },
+    { id: 'C10B', tokens: ['xv', 'x', 'ad', '=', 'aj'] }
+  ];
 
-const DIFFICULTY_CONFIG = {
-  easy: 8,
-  normal: 12,
-  hard: 16,
-  expert: 20,
-  master: 24
-};
+  const DIFFICULTIES = {
+    easy: { label: '簡単', hideCount: 8, minVisiblePerEquation: 2 },
+    normal: { label: '普通', hideCount: 12, minVisiblePerEquation: 2 },
+    advanced: { label: '上級', hideCount: 16, minVisiblePerEquation: 1 },
+    hard: { label: '難問', hideCount: 20, minVisiblePerEquation: 1 },
+    expert: { label: '超難問', hideCount: 21, minVisiblePerEquation: 1 }
+  };
 
-const appState = {
-  solution: {},
-  givens: new Set(),
-  inputs: {},
-  selectedCellId: null,
-  modalValue: "",
-  revealed: false
-};
+  const SAMPLE_FALLBACK = {
+    a: 12, b: 3, c: 15, d: 21, e: 3, f: 18,
+    g: 3, h: 12, i: 13, j: 16, k: 9, l: 1,
+    m: 4, n: 2, o: 2, p: 5, q: 4, r: 9,
+    s: 4, t: 2, u: 2, v: 9, w: 7, xv: 16,
+    y: 2, z: 5, aa: 14, ab: 3, ac: 16, ad: 15,
+    ae: 8, af: 4, ag: 2, ah: 3, ai: 5, aj: 15
+  };
 
-const boardEl = document.getElementById("board");
-const difficultyEl = document.getElementById("difficulty");
-const calcModeEl = document.getElementById("calcMode");
-const newGameBtn = document.getElementById("newGameBtn");
-const checkBtn = document.getElementById("checkBtn");
-const clearBtn = document.getElementById("clearBtn");
-const answerBtn = document.getElementById("answerBtn");
-const messageEl = document.getElementById("message");
-const progressEl = document.getElementById("progress");
+  const NUMBER_KEYS = Array.from(new Set(LAYOUT.flat().filter(Boolean).filter((cell) => cell.kind === 'number').map((cell) => cell.key)));
+  const EQUATION_KEYS = EQUATIONS.map((equation) => equation.tokens.filter((token) => isNumberKey(token)));
+  const KEY_TO_EQUATIONS = buildKeyToEquations();
 
-const numberModal = document.getElementById("numberModal");
-const modalDisplay = document.getElementById("modalDisplay");
-const modalTargetInfo = document.getElementById("modalTargetInfo");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const applyInputBtn = document.getElementById("applyInputBtn");
-const backspaceBtn = document.getElementById("backspaceBtn");
-const clearDigitBtn = document.getElementById("clearDigitBtn");
+  function n(key) {
+    return { kind: 'number', key };
+  }
 
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+  function op(value) {
+    return { kind: 'operator', value };
+  }
 
-function pickRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+  function eq() {
+    return { kind: 'equal', value: '=' };
+  }
 
-function generateSolvedBoard() {
-  for (let attempt = 0; attempt < 8000; attempt += 1) {
-    const g = randomInt(2, 9);
-    const m = randomInt(2, 9);
-    const n = randomInt(1, m - 1);
-    const b = randomInt(1, 20);
+  function isNumberKey(token) {
+    return typeof token === 'string' && !['+', '-', 'x', '÷', '='].includes(token);
+  }
 
-    const t = randomInt(2, 9);
-    const u = randomInt(2, 9);
-    const y = randomInt(2, 9);
-    const ae = t * u * y;
-    const afCandidates = [];
-    for (let d = 2; d <= 9; d += 1) {
-      if (ae % d === 0) {
-        afCandidates.push(d);
+  function buildKeyToEquations() {
+    const map = {};
+    NUMBER_KEYS.forEach((key) => {
+      map[key] = [];
+    });
+    EQUATIONS.forEach((equation, index) => {
+      equation.tokens.forEach((token) => {
+        if (isNumberKey(token)) {
+          map[token].push(index);
+        }
+      });
+    });
+    return map;
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function shuffle(items) {
+    const copy = items.slice();
+    for (let index = copy.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+    }
+    return copy;
+  }
+
+  function evaluateExpression(values, mode) {
+    if (!values.length) {
+      return NaN;
+    }
+
+    const numbers = [];
+    const operators = [];
+
+    values.forEach((token, index) => {
+      if (index % 2 === 0) {
+        numbers.push(Number(token));
+      } else {
+        operators.push(token);
       }
-    }
-    if (!afCandidates.length) {
-      continue;
-    }
-    const af = pickRandom(afCandidates);
-    const ag = ae / af;
-    const aa = ag - u;
-    if (aa <= 0 || aa > 99) {
-      continue;
+    });
+
+    if (numbers.some((value) => Number.isNaN(value))) {
+      return NaN;
     }
 
-    const p = randomInt(1, 20);
-    const q = randomInt(1, 20);
-    const l = randomInt(2, 9);
-    const e = randomInt(1, 20);
-    const h = randomInt(20, 80);
-    const ac = randomInt(5, 20);
-    const ah = randomInt(1, 9);
-    const ai = randomInt(2, 9);
-
-    const a = g * m;
-    const o = m - n;
-    const c = a + b;
-    const s = t * u;
-    const r = p + q;
-    const f = r * l;
-    const d = e + f;
-    const j = d - p;
-    const i = c - o;
-    const z = h - n - t;
-    const k = h + i - j;
-    const ab = z + aa - ac;
-    const v = ah * ab;
-    const w = ac - k - q;
-    const x = v + w;
-    const aj = ah * ai;
-
-    if (x <= 0 || ab <= 0 || w <= 0 || aj % x !== 0) {
-      continue;
+    if (mode === 'leftToRight') {
+      let result = numbers[0];
+      operators.forEach((operator, index) => {
+        result = applyOperator(result, operator, numbers[index + 1]);
+      });
+      return result;
     }
 
-    const ad = aj / x;
+    const collapsedNumbers = [numbers[0]];
+    const collapsedOperators = [];
 
-    const values = {
-      a, b, c, d, e, f, g, h, i, j, k, l,
-      m, n, o, p, q, r, s, t, u, v, w, x,
-      y, z, aa, ab, ac, ad, ae, af, ag, ah, ai, aj
-    };
+    operators.forEach((operator, index) => {
+      const nextNumber = numbers[index + 1];
+      if (operator === 'x' || operator === '÷') {
+        const previous = collapsedNumbers.pop();
+        collapsedNumbers.push(applyOperator(previous, operator, nextNumber));
+      } else {
+        collapsedOperators.push(operator);
+        collapsedNumbers.push(nextNumber);
+      }
+    });
 
-    if (!NUMBER_IDS.every((id) => Number.isInteger(values[id]) && values[id] > 0 && values[id] <= 99)) {
-      continue;
-    }
-
-    if (!validateSolution(values)) {
-      continue;
-    }
-
-    return values;
-  }
-
-  throw new Error("盤面生成に失敗しました。");
-}
-
-function evaluateTokens(tokens, mode) {
-  const values = [];
-  const operators = [];
-
-  tokens.forEach((token) => {
-    if (typeof token === "number") {
-      values.push(token);
-    } else {
-      operators.push(token);
-    }
-  });
-
-  if (values.length === 1) {
-    return values[0];
-  }
-
-  if (mode === "left") {
-    let result = values[0];
-    for (let i = 0; i < operators.length; i += 1) {
-      result = applyOperator(result, operators[i], values[i + 1]);
-    }
+    let result = collapsedNumbers[0];
+    collapsedOperators.forEach((operator, index) => {
+      result = applyOperator(result, operator, collapsedNumbers[index + 1]);
+    });
     return result;
   }
 
-  const v = [...values];
-  const ops = [...operators];
-  for (let i = 0; i < ops.length; ) {
-    if (ops[i] === "*" || ops[i] === "/") {
-      const result = applyOperator(v[i], ops[i], v[i + 1]);
-      v.splice(i, 2, result);
-      ops.splice(i, 1);
-    } else {
-      i += 1;
+  function applyOperator(left, operator, right) {
+    switch (operator) {
+      case '+': return left + right;
+      case '-': return left - right;
+      case 'x': return left * right;
+      case '÷': return right === 0 ? NaN : left / right;
+      default: return NaN;
     }
   }
 
-  let result = v[0];
-  for (let i = 0; i < ops.length; i += 1) {
-    result = applyOperator(result, ops[i], v[i + 1]);
-  }
-  return result;
-}
+  function evaluateEquation(valuesByKey, equation, mode) {
+    const equalIndex = equation.tokens.indexOf('=');
+    const leftTokens = equation.tokens.slice(0, equalIndex).map((token) => (isNumberKey(token) ? valuesByKey[token] : token));
+    const rightTokens = equation.tokens.slice(equalIndex + 1).map((token) => (isNumberKey(token) ? valuesByKey[token] : token));
 
-function applyOperator(left, operator, right) {
-  switch (operator) {
-    case "+":
-      return left + right;
-    case "-":
-      return left - right;
-    case "*":
-      return left * right;
-    case "/":
-      if (right === 0 || left % right !== 0) {
-        return Number.NaN;
+    if (leftTokens.some((token) => token === null || token === undefined || token === '')) {
+      return false;
+    }
+    if (rightTokens.some((token) => token === null || token === undefined || token === '')) {
+      return false;
+    }
+
+    const leftValue = evaluateExpression(leftTokens, mode);
+    const rightValue = evaluateExpression(rightTokens, mode);
+    return Number.isFinite(leftValue) && Number.isFinite(rightValue) && Math.abs(leftValue - rightValue) < 1e-9;
+  }
+
+  function verifySolution(solution) {
+    return EQUATIONS.every((equation) => evaluateEquation(solution, equation, 'precedence'));
+  }
+
+  function generateSolution() {
+    for (let attempt = 0; attempt < 5000; attempt += 1) {
+      const g = randInt(2, 9);
+      const m = randInt(6, 18);
+      const a = g * m;
+      const b = randInt(1, 9);
+      const c = a + b;
+      if (c > 99) {
+        continue;
       }
-      return left / right;
-    default:
-      return Number.NaN;
+
+      const oMax = Math.min(m - 1, c - 1, 18);
+      if (oMax < 1) {
+        continue;
+      }
+      const o = randInt(1, oMax);
+      const i = c - o;
+      const nValue = m - o;
+      if (nValue < 1 || i < 1) {
+        continue;
+      }
+
+      const t = randInt(2, 6);
+      const u = randInt(1, 9);
+      const s = t * u;
+      const aa = u * (t - 1);
+      const y = randInt(1, 9);
+      const af = y;
+      const ae = s * y;
+      const ag = s;
+      if ([s, aa, ae, ag].some((value) => value > 99)) {
+        continue;
+      }
+
+      const ab = randInt(1, 9);
+      const ah = randInt(1, 9);
+      const beta = randInt(1, 4);
+      const w = ah * beta;
+      const v = ab * ah;
+      const xv = v + w;
+      const ad = randInt(1, 9);
+      const ai = ad * (ab + beta);
+      const aj = xv * ad;
+      if ([w, v, xv, ai, aj].some((value) => value > 99)) {
+        continue;
+      }
+
+      const q = randInt(1, 9);
+      const j = i + nValue + t + ab + q + w - aa;
+      if (j < 2 || j > 90) {
+        continue;
+      }
+
+      const zMin = Math.max(1, ab + q + w - aa + 1);
+      const zMax = Math.min(28, 99);
+      if (zMin > zMax) {
+        continue;
+      }
+      const z = randInt(zMin, zMax);
+      const k = z + aa - ab - q - w;
+      if (k < 1 || k > 99) {
+        continue;
+      }
+      const h = z + nValue + t;
+      if (h > 99) {
+        continue;
+      }
+
+      let p;
+      let l;
+      let r;
+      let f;
+      let e;
+      let d;
+      let topRightOk = false;
+      for (let inner = 0; inner < 60 && !topRightOk; inner += 1) {
+        p = randInt(1, 9);
+        l = randInt(1, 3);
+        r = p + q;
+        f = l * r;
+        d = j + p;
+        e = d - f;
+        if (e >= 1 && d <= 99 && f <= 99) {
+          topRightOk = true;
+        }
+      }
+      if (!topRightOk) {
+        continue;
+      }
+
+      const pValue = p;
+      const ac = z + aa - ab;
+      if (ac < 1 || ac > 99) {
+        continue;
+      }
+
+      const candidate = {
+        a, b, c,
+        d, e, f,
+        g,
+        h, i, j, k,
+        l,
+        m,
+        n: nValue,
+        o,
+        p: pValue,
+        q,
+        r,
+        s, t, u,
+        v, w, xv,
+        y,
+        z,
+        aa, ab, ac,
+        ad,
+        ae, af, ag,
+        ah, ai, aj
+      };
+
+      if (Object.values(candidate).some((value) => !Number.isInteger(value) || value < 0 || value > 99)) {
+        continue;
+      }
+
+      if (verifySolution(candidate)) {
+        return candidate;
+      }
+    }
+
+    return { ...SAMPLE_FALLBACK };
   }
-}
 
-function validateSolution(values) {
-  const mode = calcModeEl.value || "precedence";
-  const equations = [
-    [[values.a, "+", values.b], values.c],
-    [[values.d, "-", values.e], values.f],
-    [[values.h, "+", values.i, "-", values.j], values.k],
-    [[values.m, "-", values.n], values.o],
-    [[values.p, "+", values.q], values.r],
-    [[values.s, "/", values.t], values.u],
-    [[values.v, "+", values.w], values.x],
-    [[values.z, "+", values.aa, "-", values.ab], values.ac],
-    [[values.a, "/", values.g], values.m],
-    [[values.c, "-", values.i], values.o],
-    [[values.d, "-", values.j], values.p],
-    [[values.f, "/", values.l], values.r],
-    [[values.h, "-", values.n, "-", values.t], values.z],
-    [[values.k, "+", values.q, "+", values.w], values.ac],
-    [[values.s, "*", values.y], values.ae],
-    [[values.u, "+", values.aa], values.ag],
-    [[values.v, "/", values.ab], values.ah],
-    [[values.x, "*", values.ad], values.aj],
-    [[values.ae, "/", values.af], values.ag],
-    [[values.ah, "*", values.ai], values.aj]
-  ];
+  function buildHiddenSet(solution, difficultyKey) {
+    const config = DIFFICULTIES[difficultyKey] || DIFFICULTIES.normal;
+    const hidden = new Set();
+    const visibleCounts = EQUATION_KEYS.map((keys) => keys.length);
+    const phases = [config.minVisiblePerEquation, 1];
 
-  return equations.every(([leftTokens, rightValue]) => evaluateTokens(leftTokens, mode) === rightValue);
-}
-
-function chooseGivenCells(difficulty) {
-  const ids = [...NUMBER_IDS];
-  const hiddenCount = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.normal;
-  shuffle(ids);
-  const hidden = new Set(ids.slice(0, hiddenCount));
-  return new Set(ids.filter((id) => !hidden.has(id)));
-}
-
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-function createNewGame() {
-  const solution = generateSolvedBoard();
-  const givens = chooseGivenCells(difficultyEl.value);
-
-  appState.solution = solution;
-  appState.givens = givens;
-  appState.inputs = {};
-  appState.selectedCellId = null;
-  appState.modalValue = "";
-  appState.revealed = false;
-
-  NUMBER_IDS.forEach((id) => {
-    appState.inputs[id] = givens.has(id) ? String(solution[id]) : "";
-  });
-
-  renderBoard();
-  updateProgress();
-  setMessage("固定形状で新しい問題を作成しました。空欄の数字を埋めてください。", false);
-}
-
-function renderBoard() {
-  boardEl.innerHTML = "";
-
-  BOARD_LAYOUT.forEach((row, rowIndex) => {
-    row.forEach((token, colIndex) => {
-      const cell = document.createElement("button");
-      cell.type = "button";
-      cell.className = "cell";
-      cell.style.gridRow = String(rowIndex + 1);
-      cell.style.gridColumn = String(colIndex + 1);
-
-      if (token === null) {
-        cell.classList.add("blank");
-        cell.disabled = true;
-        boardEl.appendChild(cell);
+    phases.forEach((minimumVisible) => {
+      if (hidden.size >= config.hideCount) {
         return;
       }
-
-      if (NUMBER_IDS.includes(token)) {
-        const isFixed = appState.givens.has(token) || appState.revealed;
-        const value = isFixed ? String(appState.solution[token]) : (appState.inputs[token] || "");
-        cell.dataset.cellId = token;
-        cell.classList.add(isFixed ? "number" : "input");
-        if (!isFixed) {
-          cell.classList.add("editable");
+      shuffle(NUMBER_KEYS).forEach((key) => {
+        if (hidden.size >= config.hideCount || hidden.has(key)) {
+          return;
         }
-        if (value) {
-          cell.textContent = value;
-          if (!isFixed) {
-            cell.classList.add("has-value");
-          }
+        const canHide = KEY_TO_EQUATIONS[key].every((equationIndex) => visibleCounts[equationIndex] - 1 >= minimumVisible);
+        if (!canHide) {
+          return;
         }
-        if (appState.selectedCellId === token && !isFixed) {
-          cell.classList.add("selected");
-        }
-        if (isFixed) {
-          cell.disabled = true;
-        } else {
-          cell.addEventListener("click", () => openModal(token));
-        }
-      } else {
-        cell.classList.add(token === "=" ? "equal" : "operator");
-        cell.textContent = token === "*" ? "×" : token === "/" ? "÷" : token;
-        cell.disabled = true;
-      }
-
-      boardEl.appendChild(cell);
+        hidden.add(key);
+        KEY_TO_EQUATIONS[key].forEach((equationIndex) => {
+          visibleCounts[equationIndex] -= 1;
+        });
+      });
     });
-  });
-}
 
-function openModal(cellId) {
-  appState.selectedCellId = cellId;
-  appState.modalValue = appState.inputs[cellId] || "";
-  modalTargetInfo.textContent = `選択中のマス: ${cellId}`;
-  updateModalDisplay();
-  numberModal.classList.remove("hidden");
-  numberModal.setAttribute("aria-hidden", "false");
-  renderBoard();
-}
+    return hidden;
+  }
 
-function closeModal() {
-  numberModal.classList.add("hidden");
-  numberModal.setAttribute("aria-hidden", "true");
-  appState.modalValue = "";
-}
+  function buildPuzzleState(difficultyKey) {
+    const solution = generateSolution();
+    const hidden = buildHiddenSet(solution, difficultyKey);
+    const given = {};
+    const user = {};
+    NUMBER_KEYS.forEach((key) => {
+      if (!hidden.has(key)) {
+        given[key] = solution[key];
+      } else {
+        user[key] = '';
+      }
+    });
+    return {
+      solution,
+      hidden,
+      given,
+      user,
+      difficultyKey
+    };
+  }
 
-function updateModalDisplay() {
-  modalDisplay.textContent = appState.modalValue || "--";
-}
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      LAYOUT,
+      EQUATIONS,
+      DIFFICULTIES,
+      evaluateExpression,
+      evaluateEquation,
+      generateSolution,
+      buildHiddenSet,
+      buildPuzzleState,
+      verifySolution
+    };
+  }
 
-function appendDigit(digit) {
-  if (appState.selectedCellId === null) {
+  if (typeof document === 'undefined') {
     return;
   }
-  if (appState.modalValue.length >= 2) {
-    return;
-  }
-  appState.modalValue = appState.modalValue === "0" ? digit : `${appState.modalValue}${digit}`;
-  updateModalDisplay();
-}
 
-function applyModalInput() {
-  if (appState.selectedCellId === null) {
+  const elements = {
+    board: document.getElementById('board'),
+    difficultySelect: document.getElementById('difficultySelect'),
+    calcModeSelect: document.getElementById('calcModeSelect'),
+    newGameBtn: document.getElementById('newGameBtn'),
+    checkBtn: document.getElementById('checkBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    showAnswerBtn: document.getElementById('showAnswerBtn'),
+    statusText: document.getElementById('statusText'),
+    progressText: document.getElementById('progressText'),
+    modalBackdrop: document.getElementById('modalBackdrop'),
+    modalDisplay: document.getElementById('modalDisplay'),
+    modalTargetLabel: document.getElementById('modalTargetLabel'),
+    modalCloseBtn: document.getElementById('modalCloseBtn'),
+    modalClearBtn: document.getElementById('modalClearBtn'),
+    modalBackspaceBtn: document.getElementById('modalBackspaceBtn'),
+    modalConfirmBtn: document.getElementById('modalConfirmBtn'),
+    keypad: document.getElementById('keypad')
+  };
+
+  const state = {
+    puzzle: null,
+    activeKey: null,
+    modalBuffer: '',
+    revealed: false,
+    validation: {}
+  };
+
+  function init() {
+    buildKeypad();
+    bindEvents();
+    createNewPuzzle();
+  }
+
+  function buildKeypad() {
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+    keys.forEach((digit) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = digit;
+      button.dataset.digit = digit;
+      elements.keypad.appendChild(button);
+    });
+  }
+
+  function bindEvents() {
+    elements.newGameBtn.addEventListener('click', createNewPuzzle);
+    elements.checkBtn.addEventListener('click', checkAnswers);
+    elements.clearBtn.addEventListener('click', clearInputs);
+    elements.showAnswerBtn.addEventListener('click', showAnswers);
+    elements.modalCloseBtn.addEventListener('click', closeModal);
+    elements.modalBackdrop.addEventListener('click', (event) => {
+      if (event.target === elements.modalBackdrop) {
+        closeModal();
+      }
+    });
+    elements.modalClearBtn.addEventListener('click', () => {
+      state.modalBuffer = '';
+      renderModalDisplay();
+    });
+    elements.modalBackspaceBtn.addEventListener('click', () => {
+      state.modalBuffer = state.modalBuffer.slice(0, -1);
+      renderModalDisplay();
+    });
+    elements.modalConfirmBtn.addEventListener('click', commitModalValue);
+    elements.keypad.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-digit]');
+      if (!button) {
+        return;
+      }
+      if (state.modalBuffer.length >= 2) {
+        return;
+      }
+      state.modalBuffer += button.dataset.digit;
+      renderModalDisplay();
+    });
+  }
+
+  function createNewPuzzle() {
+    const difficultyKey = elements.difficultySelect.value;
+    state.puzzle = buildPuzzleState(difficultyKey);
+    state.activeKey = null;
+    state.modalBuffer = '';
+    state.revealed = false;
+    state.validation = {};
+    renderBoard();
+    updateStatus(`新しい問題を作成しました。難易度：${DIFFICULTIES[difficultyKey].label}`);
+    updateProgress();
     closeModal();
-    return;
   }
 
-  appState.inputs[appState.selectedCellId] = appState.modalValue;
-  renderBoard();
-  updateProgress();
-  setMessage("入力を更新しました。", false);
-  closeModal();
-}
+  function renderBoard() {
+    elements.board.innerHTML = '';
 
-function clearEditableInputs() {
-  NUMBER_IDS.forEach((id) => {
-    if (!appState.givens.has(id)) {
-      appState.inputs[id] = "";
+    LAYOUT.forEach((row) => {
+      row.forEach((cell) => {
+        const cellElement = document.createElement('div');
+        cellElement.className = 'cell';
+
+        if (!cell) {
+          cellElement.classList.add('blank');
+          elements.board.appendChild(cellElement);
+          return;
+        }
+
+        if (cell.kind === 'operator') {
+          cellElement.classList.add('operator');
+          cellElement.textContent = cell.value;
+          elements.board.appendChild(cellElement);
+          return;
+        }
+
+        if (cell.kind === 'equal') {
+          cellElement.classList.add('equal');
+          cellElement.textContent = '=';
+          elements.board.appendChild(cellElement);
+          return;
+        }
+
+        const key = cell.key;
+        const hidden = state.puzzle.hidden.has(key);
+        cellElement.classList.add('number');
+        cellElement.dataset.key = key;
+
+        if (hidden && !state.revealed) {
+          cellElement.classList.add('input');
+          const value = state.puzzle.user[key];
+          cellElement.textContent = value === '' ? '　' : String(value);
+          if (value === '') {
+            cellElement.classList.add('empty');
+          }
+          if (state.activeKey === key) {
+            cellElement.classList.add('active');
+          }
+          if (state.validation[key]) {
+            cellElement.classList.add(state.validation[key]);
+          }
+          cellElement.tabIndex = 0;
+          cellElement.setAttribute('role', 'button');
+          cellElement.setAttribute('aria-label', `${key} の入力マス`);
+          cellElement.addEventListener('click', () => openModal(key));
+        } else {
+          cellElement.classList.add('given');
+          cellElement.textContent = String(state.puzzle.solution[key]);
+        }
+
+        elements.board.appendChild(cellElement);
+      });
+    });
+  }
+
+  function openModal(key) {
+    state.activeKey = key;
+    const current = state.puzzle.user[key];
+    state.modalBuffer = current === '' ? '' : String(current);
+    elements.modalBackdrop.classList.remove('hidden');
+    elements.modalBackdrop.setAttribute('aria-hidden', 'false');
+    elements.modalTargetLabel.textContent = `対象マス：${key}`;
+    renderModalDisplay();
+    renderBoard();
+  }
+
+  function renderModalDisplay() {
+    elements.modalDisplay.textContent = state.modalBuffer || ' '; 
+    elements.modalDisplay.classList.toggle('empty', state.modalBuffer === '');
+  }
+
+  function commitModalValue() {
+    if (!state.activeKey) {
+      closeModal();
+      return;
     }
-  });
-  appState.selectedCellId = null;
-  renderBoard();
-  updateProgress();
-  setMessage("入力可能マスを消去しました。", false);
-}
-
-function revealAnswer() {
-  appState.revealed = true;
-  appState.selectedCellId = null;
-  NUMBER_IDS.forEach((id) => {
-    appState.inputs[id] = String(appState.solution[id]);
-  });
-  renderBoard();
-  updateProgress();
-  setMessage("答えを表示しました。", false);
-}
-
-function updateProgress() {
-  const editableIds = NUMBER_IDS.filter((id) => !appState.givens.has(id));
-  const filled = editableIds.filter((id) => appState.inputs[id]).length;
-  progressEl.textContent = `${filled} / ${editableIds.length}`;
-}
-
-function checkBoard() {
-  const missing = NUMBER_IDS.filter((id) => !appState.givens.has(id) && !appState.inputs[id]);
-  if (missing.length > 0) {
-    setMessage(`未入力があります。残り ${missing.length} マスです。`, true);
-    return;
-  }
-
-  const enteredValues = {};
-  NUMBER_IDS.forEach((id) => {
-    enteredValues[id] = Number(appState.inputs[id]);
-  });
-
-  if (!validateSolution(enteredValues)) {
-    setMessage("式が成立していない箇所があります。入力を見直してください。", true);
-    return;
-  }
-
-  const wrong = NUMBER_IDS.filter((id) => Number(appState.inputs[id]) !== appState.solution[id]);
-  if (wrong.length === 0) {
-    setMessage("正解です。すべての式が成立しています。", false);
-  } else {
-    setMessage(`式は成立していますが、正解盤面との差分が ${wrong.length} マスあります。`, true);
-  }
-}
-
-function setMessage(text, isAlert) {
-  messageEl.textContent = text;
-  messageEl.style.color = isAlert ? "#ffe2a3" : "#f6f8ff";
-}
-
-newGameBtn.addEventListener("click", createNewGame);
-checkBtn.addEventListener("click", checkBoard);
-clearBtn.addEventListener("click", clearEditableInputs);
-answerBtn.addEventListener("click", revealAnswer);
-closeModalBtn.addEventListener("click", closeModal);
-applyInputBtn.addEventListener("click", applyModalInput);
-backspaceBtn.addEventListener("click", () => {
-  appState.modalValue = appState.modalValue.slice(0, -1);
-  updateModalDisplay();
-});
-clearDigitBtn.addEventListener("click", () => {
-  appState.modalValue = "";
-  updateModalDisplay();
-});
-document.querySelectorAll(".digit-btn").forEach((button) => {
-  button.addEventListener("click", () => appendDigit(button.dataset.digit));
-});
-numberModal.addEventListener("click", (event) => {
-  if (event.target.dataset.close === "true") {
+    const normalized = state.modalBuffer === '' ? '' : String(Math.min(99, Number(state.modalBuffer)));
+    state.puzzle.user[state.activeKey] = normalized;
+    delete state.validation[state.activeKey];
+    updateProgress();
+    renderBoard();
     closeModal();
   }
-});
-difficultyEl.addEventListener("change", createNewGame);
-calcModeEl.addEventListener("change", () => {
-  if (!Object.keys(appState.solution).length) {
-    return;
-  }
-  createNewGame();
-  setMessage("計算ルールを反映して問題を作り直しました。", false);
-});
 
-createNewGame();
+  function closeModal() {
+    state.activeKey = null;
+    state.modalBuffer = '';
+    elements.modalBackdrop.classList.add('hidden');
+    elements.modalBackdrop.setAttribute('aria-hidden', 'true');
+    renderBoard();
+  }
+
+  function collectCurrentValues() {
+    const values = { ...state.puzzle.solution };
+    state.puzzle.hidden.forEach((key) => {
+      const value = state.revealed ? state.puzzle.solution[key] : state.puzzle.user[key];
+      values[key] = value === '' ? '' : Number(value);
+    });
+    return values;
+  }
+
+  function checkAnswers() {
+    state.revealed = false;
+    const currentValues = collectCurrentValues();
+    let correctCount = 0;
+    let filledCount = 0;
+    const validation = {};
+
+    state.puzzle.hidden.forEach((key) => {
+      const current = currentValues[key];
+      if (current !== '') {
+        filledCount += 1;
+      }
+      if (current !== '' && Number(current) === Number(state.puzzle.solution[key])) {
+        validation[key] = 'correct';
+        correctCount += 1;
+      } else if (current === '') {
+        validation[key] = '';
+      } else {
+        validation[key] = 'wrong';
+      }
+    });
+
+    state.validation = validation;
+    const mode = elements.calcModeSelect.value;
+    const satisfied = EQUATIONS.filter((equation) => evaluateEquation(currentValues, equation, mode)).length;
+    const total = EQUATIONS.length;
+
+    if (correctCount === state.puzzle.hidden.size && state.puzzle.hidden.size > 0) {
+      updateStatus(`正解です。${total} 本中 ${satisfied} 本の式が成立しています。`);
+    } else {
+      updateStatus(`入力一致 ${correctCount} / ${state.puzzle.hidden.size}、式成立 ${satisfied} / ${total} です。`);
+    }
+    renderBoard();
+  }
+
+  function clearInputs() {
+    state.revealed = false;
+    state.validation = {};
+    state.puzzle.hidden.forEach((key) => {
+      state.puzzle.user[key] = '';
+    });
+    updateStatus('入力をクリアしました。');
+    updateProgress();
+    renderBoard();
+  }
+
+  function showAnswers() {
+    state.revealed = true;
+    state.validation = {};
+    updateStatus('答えを表示しています。');
+    updateProgress();
+    renderBoard();
+    closeModal();
+  }
+
+  function updateStatus(message) {
+    elements.statusText.textContent = message;
+  }
+
+  function updateProgress() {
+    const total = state.puzzle.hidden.size;
+    const filled = Array.from(state.puzzle.hidden).filter((key) => state.puzzle.user[key] !== '').length;
+    elements.progressText.textContent = `${filled} / ${total}`;
+  }
+
+  init();
+})();
