@@ -1,28 +1,25 @@
 /* =========================================
-   基盤設定 & リセット
+   基盤設定 & スマホ最適化
 ========================================= */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  /* スマホでのタップハイライトを消す */
-  -webkit-tap-highlight-color: transparent; 
+  /* スマホでのダブルタップ拡大防止と操作性向上 */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
   background-color: #f4f6f8;
   color: #333;
-  /* iOS等でのバウンススクロールを抑制 */
-  overscroll-behavior-y: none;
 }
 
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  /* Safari向けビューポート対応 */
-  height: 100dvh; 
+  height: 100dvh; /* Safariのツールバーを考慮した高さ */
   max-width: 600px;
   margin: 0 auto;
   background-color: #fff;
@@ -30,132 +27,113 @@ body {
 }
 
 /* =========================================
-   ヘッダー & コントロールパネル
+   ヘッダーパネル
 ========================================= */
 .panel {
-  padding: 12px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 10px;
 }
-
-h1 {
+.panel h1 {
   font-size: 1.2rem;
   text-align: center;
   margin-bottom: 10px;
 }
-
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
-
 .field {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.9rem;
 }
-
 select {
-  padding: 6px;
+  padding: 5px;
   border-radius: 4px;
   border: 1px solid #ccc;
-  background-color: #fff;
 }
-
 .actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
   margin-top: 5px;
 }
-
-button {
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
+.actions button {
+  flex: 1 1 calc(50% - 5px);
+  padding: 8px;
+  font-size: 0.85rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   background-color: #e2e8f0;
-  color: #333;
-  font-weight: bold;
   cursor: pointer;
-  /* タップ時の反発感を付与 */
-  transition: transform 0.1s, background-color 0.2s;
-}
-
-button:active {
-  transform: scale(0.95);
-  background-color: #cbd5e1;
 }
 
 /* =========================================
-   盤面 (CSS Grid レスポンシブ設計)
+   盤面 (11x11 レスポンシブ Grid)
 ========================================= */
 .board-panel {
   flex: 1;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: 5px;
   background-color: #fafafa;
-  /* はみ出し防止とスクロール許可 */
-  overflow: auto; 
-  padding: 10px;
 }
 
 .board {
   display: grid;
-  /* 11マスの格子。画面幅に合わせて可変（レスポンシブ） */
-  grid-template-columns: repeat(11, minmax(20px, 1fr));
-  gap: 2px;
+  /* 11列を均等に画面幅に合わせて伸縮させる魔法 */
+  grid-template-columns: repeat(11, 1fr);
   width: 100%;
-  max-width: 450px; /* PC閲覧時の最大幅 */
-  aspect-ratio: 1 / 1; /* 盤面を正方形に保つ */
+  aspect-ratio: 1 / 1; /* 正方形を維持 */
+  gap: 2px;
 }
 
 .cell {
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: clamp(12px, 4vw, 20px); /* 画面サイズでフォント可変 */
+  justify-content: center;
+  /* 画面幅に応じたフォントサイズ (最小10px, 推奨3.5vw, 最大24px) */
+  font-size: clamp(10px, 3.5vw, 24px);
   font-weight: bold;
-  border-radius: 2px;
-  aspect-ratio: 1 / 1;
-}
-
-/* マスの種類 */
-.cell.empty {
   background-color: transparent;
 }
+
+/* マスの状態別スタイル */
 .cell.number {
-  background-color: #e0f2fe; /* プリセット数字（水色） */
-  border: 1px solid #bae6fd;
-}
-.cell.operator, .cell.equal {
-  color: #64748b; /* 記号（グレー） */
+  background-color: #e0f2fe; /* 固定数字マス */
+  border-radius: 2px;
 }
 .cell.input {
   background-color: #fff;
-  border: 2px solid #94a3b8;
+  border: 1px solid #94a3b8;
+  border-radius: 2px;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 .cell.input.is-empty {
   background-color: #f8fafc;
 }
 .cell.input.is-selected {
-  border-color: #3b82f6; /* 選択中（青枠） */
   background-color: #eff6ff;
-  box-shadow: inset 0 0 5px rgba(59, 130, 246, 0.5);
+  border: 2px solid #3b82f6; /* タップ選択時の青枠 */
+}
+.cell.operator, .cell.equal {
+  color: #64748b; /* 記号 */
 }
 
 /* =========================================
    フッター
 ========================================= */
 .footer-panel {
-  border-bottom: none;
-  border-top: 1px solid #e0e0e0;
-  font-size: 0.85rem;
   text-align: center;
+  font-size: 0.85rem;
   color: #666;
-  padding: 10px;
+  border-top: 1px solid #eee;
+}
+.footer-panel p {
+  margin: 5px 0;
 }
 
 /* =========================================
@@ -163,21 +141,15 @@ button:active {
 ========================================= */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0; /* top, right, bottom, left を 0 に */
   background-color: rgba(0, 0, 0, 0.6); /* 半透明の黒背景 */
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
-  /* 非表示切替のアニメーション準備 */
+  justify-content: center;
+  z-index: 9999;
   opacity: 1;
   visibility: visible;
   transition: opacity 0.2s, visibility 0.2s;
-  /* スマホのUIバグ回避 */
-  touch-action: none; 
 }
 
 .modal-backdrop.hidden {
@@ -189,16 +161,15 @@ button:active {
 .modal {
   background-color: #fff;
   width: 90%;
-  max-width: 350px;
-  border-radius: 12px;
+  max-width: 360px;
   padding: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
   transform: translateY(0);
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.3s;
 }
-
 .modal-backdrop.hidden .modal {
-  transform: translateY(20px); /* 隠れる時は少し下に下がる */
+  transform: translateY(20px);
 }
 
 .modal-header {
@@ -207,70 +178,60 @@ button:active {
   align-items: center;
   margin-bottom: 5px;
 }
-
 .modal-header h2 {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
-
 .close-btn {
   background: none;
   border: none;
   font-size: 1.5rem;
-  line-height: 1;
   color: #999;
-  padding: 0 5px;
+  cursor: pointer;
 }
-
 .modal-sub {
   font-size: 0.8rem;
   color: #666;
   margin-bottom: 15px;
   text-align: center;
 }
-
 .modal-value {
   font-size: 2rem;
   text-align: center;
   padding: 10px;
   background-color: #f1f5f9;
   border-radius: 8px;
-  margin-bottom: 20px;
-  letter-spacing: 2px;
-  min-height: 60px; /* 空でも高さを維持 */
+  margin-bottom: 15px;
+  letter-spacing: 5px;
+  min-height: 60px;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
-/* テンキー（CSS Grid） */
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
-
 .keypad button {
   padding: 15px 0;
   font-size: 1.2rem;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
   border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-weight: bold;
 }
-
+.keypad button:active {
+  background-color: #e2e8f0;
+}
 .keypad button[data-action="delete"] {
   background-color: #fee2e2;
   color: #ef4444;
 }
-
 .keypad button[data-action="clear"] {
   background-color: #fef9c3;
   color: #ca8a04;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: stretch;
 }
 
 .modal-actions button {
@@ -279,7 +240,7 @@ button:active {
   background-color: #3b82f6;
   color: #fff;
   font-size: 1.1rem;
-}
-.modal-actions button:active {
-  background-color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
 }
