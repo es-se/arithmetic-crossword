@@ -1,35 +1,31 @@
 * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; height: 100dvh; display: flex; justify-content: center; overflow: hidden; }
-.app { width: 100%; max-width: 500px; display: flex; flex-direction: column; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-.panel { padding: 12px; border-bottom: 1px solid #eee; }
-.controls { display: grid; gap: 8px; }
-.field { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #444; }
-select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
-.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; }
-.actions button { padding: 10px 2px; font-size: 11px; font-weight: bold; border: 1px solid #ddd; border-radius: 6px; background: #f8fafc; cursor: pointer; }
-.actions button:active { background: #e2e8f0; }
+body { font-family: sans-serif; background: #f0f2f5; height: 100dvh; display: flex; justify-content: center; overflow: hidden; }
+.app { width: 100%; max-width: 500px; display: flex; flex-direction: column; background: #fff; }
+.panel { padding: 8px; border-bottom: 1px solid #ddd; }
+.controls { display: grid; gap: 4px; }
+.field { display: flex; justify-content: space-between; font-size: 13px; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; }
+.actions button { padding: 10px; font-size: 12px; font-weight: bold; border-radius: 6px; border: 1px solid #ccc; background: #e2e8f0; }
 
-.board-panel { flex: 1; display: flex; align-items: center; justify-content: center; background: #fafafa; padding: 4px; overflow: hidden; }
-.board { display: grid; grid-template-columns: repeat(11, 1fr); width: 100%; aspect-ratio: 1 / 1; gap: 1px; background: #cbd5e1; border: 1px solid #cbd5e1; }
-.cell { background: #fff; display: flex; align-items: center; justify-content: center; font-size: min(3.2vw, 16px); font-weight: bold; aspect-ratio: 1 / 1; }
+.board-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2px; background: #fafafa; overflow: hidden; }
+.board { display: grid; grid-template-columns: repeat(11, 1fr); width: 100%; aspect-ratio: 1/1; gap: 1px; background: #cbd5e1; }
+.cell { background: #fff; display: flex; align-items: center; justify-content: center; font-size: min(3.5vw, 16px); font-weight: bold; aspect-ratio: 1/1; }
 .cell.empty { background: #f1f5f9; }
 .cell.number { background: #e0f2fe; color: #0369a1; }
-.cell.operator, .cell.equal { background: #f8fafc; color: #64748b; font-size: min(3.5vw, 18px); }
+.cell.operator, .cell.equal { background: #f8fafc; color: #64748b; }
 .cell.input { background: #fff; color: #1e293b; cursor: pointer; }
 .cell.input.is-empty { color: transparent; }
 .cell.input.is-selected { background: #eff6ff; outline: 2px solid #3b82f6; z-index: 10; }
 
-.footer-panel { border-top: 1px solid #eee; border-bottom: none; text-align: center; }
-#message { font-size: 14px; color: #ef4444; font-weight: bold; margin-bottom: 4px; min-height: 1.2em; }
-.footer-panel p:last-child { font-size: 10px; color: #94a3b8; }
+.footer-panel { border-top: 1px solid #eee; text-align: center; }
+#message { font-size: 12px; color: #ef4444; font-weight: bold; }
 
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal-backdrop.hidden { display: none; }
-.modal { background: #fff; width: 85%; max-width: 320px; padding: 20px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.close-btn { background: none; border: none; font-size: 28px; color: #94a3b8; cursor: pointer; }
-.modal-value { font-size: 32px; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e2e8f0; color: #1e293b; font-family: monospace; }
-.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.keypad button { padding: 15px 0; font-size: 20px; font-weight: bold; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; color: #334155; }
-.keypad button:active { background: #f1f5f9; }
-.apply-btn { width: 100%; margin-top: 15px; padding: 16px; background: #3b82f6; color: #fff; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; }
+.modal { background: #fff; width: 85%; max-width: 300px; padding: 15px; border-radius: 12px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; }
+.close-btn { background: none; border: none; font-size: 24px; color: #999; }
+.modal-value { font-size: 28px; text-align: center; background: #f1f5f9; padding: 8px; margin: 10px 0; border-radius: 6px; min-height: 45px; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.keypad button { padding: 12px 0; font-size: 18px; font-weight: bold; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+.apply-btn { width: 100%; margin-top: 10px; padding: 14px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-weight: bold; }
