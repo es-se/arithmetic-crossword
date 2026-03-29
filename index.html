@@ -2,75 +2,73 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Math Crossword 数字ゲーム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Math Crossword</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-shell">
-    <header class="app-header">
-      <h1>Math Crossword 数字ゲーム</h1>
-      <p class="subtitle">提供されたサンプル画像の形を固定し、数字だけを差し替えるスマホ向け数式クロスワードです。</p>
-    </header>
-
-    <section class="panel controls-panel">
-      <div class="control-row">
-        <label class="control-field">
-          <span>難易度</span>
-          <select id="difficultySelect">
+  <div class="app">
+    <div class="panel">
+      <h1>Math Crossword</h1>
+      <div class="controls">
+        <div class="field">
+          <label for="difficulty">難易度:</label>
+          <select id="difficulty">
             <option value="easy">簡単</option>
             <option value="normal" selected>普通</option>
-            <option value="advanced">上級</option>
-            <option value="hard">難問</option>
-            <option value="expert">超難問</option>
+            <option value="hard">難しい</option>
           </select>
-        </label>
-
-        <label class="control-field">
-          <span>計算ルール</span>
-          <select id="calcModeSelect">
-            <option value="precedence" selected>四則演算を優先する（×÷先）</option>
-            <option value="leftToRight">左から順に計算する</option>
+        </div>
+        <div class="field">
+          <label for="calc-rule">計算ルール:</label>
+          <select id="calc-rule">
+            <option value="standard">四則演算優先 (×÷先)</option>
+            <option value="left-to-right">左から順に計算</option>
           </select>
-        </label>
+        </div>
+        <div class="actions">
+          <button id="new-game-btn">新しい問題</button>
+          <button id="check-btn">答え合わせ</button>
+        </div>
       </div>
+    </div>
 
-      <div class="button-row">
-        <button id="newGameBtn" type="button">新しく作る</button>
-        <button id="checkBtn" type="button">チェック</button>
-        <button id="clearBtn" type="button">入力クリア</button>
-        <button id="showAnswerBtn" type="button">答え表示</button>
-      </div>
-    </section>
+    <div class="board-panel">
+      <div class="board" id="board">
+        <div class="cell empty"></div>
+        <div class="cell number">5</div>
+        <div class="cell operator">+</div>
+        <div class="cell input is-empty"></div>
+        <div class="cell equal">=</div>
+        <div class="cell number">12</div>
+        </div>
+    </div>
 
-    <section class="panel board-panel">
-      <div id="board" class="board" aria-label="Math Crossword 固定形状盤面"></div>
-    </section>
-
-    <section class="panel status-panel">
-      <div class="status-line">
-        <span id="statusText">読み込み中です。</span>
-        <span id="progressText">0 / 0</span>
-      </div>
-      <p class="note">タップできるのは空欄の数字マスだけです。入力は 2 桁までです。</p>
-    </section>
+    <div class="footer-panel">
+      © 2026 Tsubaki & My Lord
+    </div>
   </div>
 
-  <div id="modalBackdrop" class="modal-backdrop hidden" aria-hidden="true">
-    <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div id="modal-backdrop" class="modal-backdrop hidden">
+    <div class="modal">
       <div class="modal-header">
-        <h2 id="modalTitle">数字を入力</h2>
-        <button id="modalCloseBtn" class="icon-button" type="button" aria-label="閉じる">×</button>
+        <h2>数字を入力</h2>
+        <button id="close-modal" class="close-btn">&times;</button>
       </div>
-      <div class="modal-display-wrap">
-        <div id="modalDisplay" class="modal-display"></div>
-        <div id="modalTargetLabel" class="modal-target"></div>
-      </div>
-      <div class="keypad" id="keypad"></div>
-      <div class="modal-actions">
-        <button id="modalClearBtn" type="button">クリア</button>
-        <button id="modalBackspaceBtn" type="button">1文字削除</button>
-        <button id="modalConfirmBtn" type="button" class="primary">決定</button>
+      <div class="modal-sub">タップしたマスに数字を入れます</div>
+      <div class="keypad">
+        <button data-action="1">1</button>
+        <button data-action="2">2</button>
+        <button data-action="3">3</button>
+        <button data-action="4">4</button>
+        <button data-action="5">5</button>
+        <button data-action="6">6</button>
+        <button data-action="7">7</button>
+        <button data-action="8">8</button>
+        <button data-action="9">9</button>
+        <button data-action="clear">クリア</button>
+        <button data-action="0">0</button>
+        <button data-action="delete">削除</button>
       </div>
     </div>
   </div>

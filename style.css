@@ -1,35 +1,285 @@
-/* ===== 強制的に縮小させない版 ===== */
-
-/* 親コンテナ：スクロール専用 */
-.board-panel {
-  overflow: auto !important;
-  -webkit-overflow-scrolling: touch;
+/* =========================================
+   基盤設定 & リセット
+========================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  /* スマホでのタップハイライトを消す */
+  -webkit-tap-highlight-color: transparent; 
 }
 
-/* 盤面：固定サイズで描画 */
+body {
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+  /* iOS等でのバウンススクロールを抑制 */
+  overscroll-behavior-y: none;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* Safari向けビューポート対応 */
+  height: 100dvh; 
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   ヘッダー & コントロールパネル
+========================================= */
+.panel {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+h1 {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+select {
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+button {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: #e2e8f0;
+  color: #333;
+  font-weight: bold;
+  cursor: pointer;
+  /* タップ時の反発感を付与 */
+  transition: transform 0.1s, background-color 0.2s;
+}
+
+button:active {
+  transform: scale(0.95);
+  background-color: #cbd5e1;
+}
+
+/* =========================================
+   盤面 (CSS Grid レスポンシブ設計)
+========================================= */
+.board-panel {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fafafa;
+  /* はみ出し防止とスクロール許可 */
+  overflow: auto; 
+  padding: 10px;
+}
+
 .board {
   display: grid;
-  grid-template-columns: repeat(11, 72px) !important;
-  grid-auto-rows: 72px !important;
-  gap: 4px;
-  width: max-content !important;
-  min-width: max-content !important;
-  transform: none !important;
+  /* 11マスの格子。画面幅に合わせて可変（レスポンシブ） */
+  grid-template-columns: repeat(11, minmax(20px, 1fr));
+  gap: 2px;
+  width: 100%;
+  max-width: 450px; /* PC閲覧時の最大幅 */
+  aspect-ratio: 1 / 1; /* 盤面を正方形に保つ */
 }
 
-/* セル：絶対固定 */
 .cell {
-  width: 72px !important;
-  height: 72px !important;
-  min-width: 72px !important;
-  min-height: 72px !important;
-  max-width: 72px !important;
-  max-height: 72px !important;
-  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: clamp(12px, 4vw, 20px); /* 画面サイズでフォント可変 */
+  font-weight: bold;
+  border-radius: 2px;
+  aspect-ratio: 1 / 1;
 }
 
-/* 念のため縮小系を全部殺す */
-* {
-  zoom: 1 !important;
+/* マスの種類 */
+.cell.empty {
+  background-color: transparent;
+}
+.cell.number {
+  background-color: #e0f2fe; /* プリセット数字（水色） */
+  border: 1px solid #bae6fd;
+}
+.cell.operator, .cell.equal {
+  color: #64748b; /* 記号（グレー） */
+}
+.cell.input {
+  background-color: #fff;
+  border: 2px solid #94a3b8;
+  cursor: pointer;
+}
+.cell.input.is-empty {
+  background-color: #f8fafc;
+}
+.cell.input.is-selected {
+  border-color: #3b82f6; /* 選択中（青枠） */
+  background-color: #eff6ff;
+  box-shadow: inset 0 0 5px rgba(59, 130, 246, 0.5);
 }
 
+/* =========================================
+   フッター
+========================================= */
+.footer-panel {
+  border-bottom: none;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #666;
+  padding: 10px;
+}
+
+/* =========================================
+   モーダル (数字入力テンキー)
+========================================= */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* 半透明の黒背景 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  /* 非表示切替のアニメーション準備 */
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s, visibility 0.2s;
+  /* スマホのUIバグ回避 */
+  touch-action: none; 
+}
+
+.modal-backdrop.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.modal {
+  background-color: #fff;
+  width: 90%;
+  max-width: 350px;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  transform: translateY(0);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-backdrop.hidden .modal {
+  transform: translateY(20px); /* 隠れる時は少し下に下がる */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.modal-header h2 {
+  font-size: 1.1rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #999;
+  padding: 0 5px;
+}
+
+.modal-sub {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.modal-value {
+  font-size: 2rem;
+  text-align: center;
+  padding: 10px;
+  background-color: #f1f5f9;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+  min-height: 60px; /* 空でも高さを維持 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* テンキー（CSS Grid） */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.keypad button {
+  padding: 15px 0;
+  font-size: 1.2rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.keypad button[data-action="delete"] {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.keypad button[data-action="clear"] {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: stretch;
+}
+
+.modal-actions button {
+  width: 100%;
+  padding: 15px;
+  background-color: #3b82f6;
+  color: #fff;
+  font-size: 1.1rem;
+}
+.modal-actions button:active {
+  background-color: #2563eb;
+}
