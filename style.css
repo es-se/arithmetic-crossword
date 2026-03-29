@@ -1,246 +1,35 @@
-/* =========================================
-   基盤設定 & スマホ最適化
-========================================= */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  /* スマホでのダブルタップ拡大防止と操作性向上 */
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; height: 100dvh; display: flex; justify-content: center; overflow: hidden; }
+.app { width: 100%; max-width: 500px; display: flex; flex-direction: column; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+.panel { padding: 12px; border-bottom: 1px solid #eee; }
+.controls { display: grid; gap: 8px; }
+.field { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #444; }
+select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
+.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; }
+.actions button { padding: 10px 2px; font-size: 11px; font-weight: bold; border: 1px solid #ddd; border-radius: 6px; background: #f8fafc; cursor: pointer; }
+.actions button:active { background: #e2e8f0; }
 
-body {
-  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
-  background-color: #f4f6f8;
-  color: #333;
-}
+.board-panel { flex: 1; display: flex; align-items: center; justify-content: center; background: #fafafa; padding: 4px; overflow: hidden; }
+.board { display: grid; grid-template-columns: repeat(11, 1fr); width: 100%; aspect-ratio: 1 / 1; gap: 1px; background: #cbd5e1; border: 1px solid #cbd5e1; }
+.cell { background: #fff; display: flex; align-items: center; justify-content: center; font-size: min(3.2vw, 16px); font-weight: bold; aspect-ratio: 1 / 1; }
+.cell.empty { background: #f1f5f9; }
+.cell.number { background: #e0f2fe; color: #0369a1; }
+.cell.operator, .cell.equal { background: #f8fafc; color: #64748b; font-size: min(3.5vw, 18px); }
+.cell.input { background: #fff; color: #1e293b; cursor: pointer; }
+.cell.input.is-empty { color: transparent; }
+.cell.input.is-selected { background: #eff6ff; outline: 2px solid #3b82f6; z-index: 10; }
 
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh; /* Safariのツールバーを考慮した高さ */
-  max-width: 600px;
-  margin: 0 auto;
-  background-color: #fff;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
+.footer-panel { border-top: 1px solid #eee; border-bottom: none; text-align: center; }
+#message { font-size: 14px; color: #ef4444; font-weight: bold; margin-bottom: 4px; min-height: 1.2em; }
+.footer-panel p:last-child { font-size: 10px; color: #94a3b8; }
 
-/* =========================================
-   ヘッダーパネル
-========================================= */
-.panel {
-  padding: 10px;
-}
-.panel h1 {
-  font-size: 1.2rem;
-  text-align: center;
-  margin-bottom: 10px;
-}
-.controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.field {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-}
-select {
-  padding: 5px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 5px;
-}
-.actions button {
-  flex: 1 1 calc(50% - 5px);
-  padding: 8px;
-  font-size: 0.85rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #e2e8f0;
-  cursor: pointer;
-}
-
-/* =========================================
-   盤面 (11x11 レスポンシブ Grid)
-========================================= */
-.board-panel {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px;
-  background-color: #fafafa;
-}
-
-.board {
-  display: grid;
-  /* 11列を均等に画面幅に合わせて伸縮させる魔法 */
-  grid-template-columns: repeat(11, 1fr);
-  width: 100%;
-  aspect-ratio: 1 / 1; /* 正方形を維持 */
-  gap: 2px;
-}
-
-.cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* 画面幅に応じたフォントサイズ (最小10px, 推奨3.5vw, 最大24px) */
-  font-size: clamp(10px, 3.5vw, 24px);
-  font-weight: bold;
-  background-color: transparent;
-}
-
-/* マスの状態別スタイル */
-.cell.number {
-  background-color: #e0f2fe; /* 固定数字マス */
-  border-radius: 2px;
-}
-.cell.input {
-  background-color: #fff;
-  border: 1px solid #94a3b8;
-  border-radius: 2px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.cell.input.is-empty {
-  background-color: #f8fafc;
-}
-.cell.input.is-selected {
-  background-color: #eff6ff;
-  border: 2px solid #3b82f6; /* タップ選択時の青枠 */
-}
-.cell.operator, .cell.equal {
-  color: #64748b; /* 記号 */
-}
-
-/* =========================================
-   フッター
-========================================= */
-.footer-panel {
-  text-align: center;
-  font-size: 0.85rem;
-  color: #666;
-  border-top: 1px solid #eee;
-}
-.footer-panel p {
-  margin: 5px 0;
-}
-
-/* =========================================
-   モーダル (数字入力テンキー)
-========================================= */
-.modal-backdrop {
-  position: fixed;
-  inset: 0; /* top, right, bottom, left を 0 に */
-  background-color: rgba(0, 0, 0, 0.6); /* 半透明の黒背景 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.2s, visibility 0.2s;
-}
-
-.modal-backdrop.hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.modal {
-  background-color: #fff;
-  width: 90%;
-  max-width: 360px;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  transform: translateY(0);
-  transition: transform 0.3s;
-}
-.modal-backdrop.hidden .modal {
-  transform: translateY(20px);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
-}
-.modal-header h2 {
-  font-size: 1.2rem;
-}
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #999;
-  cursor: pointer;
-}
-.modal-sub {
-  font-size: 0.8rem;
-  color: #666;
-  margin-bottom: 15px;
-  text-align: center;
-}
-.modal-value {
-  font-size: 2rem;
-  text-align: center;
-  padding: 10px;
-  background-color: #f1f5f9;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  letter-spacing: 5px;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 15px;
-}
-.keypad button {
-  padding: 15px 0;
-  font-size: 1.2rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  font-weight: bold;
-}
-.keypad button:active {
-  background-color: #e2e8f0;
-}
-.keypad button[data-action="delete"] {
-  background-color: #fee2e2;
-  color: #ef4444;
-}
-.keypad button[data-action="clear"] {
-  background-color: #fef9c3;
-  color: #ca8a04;
-}
-
-.modal-actions button {
-  width: 100%;
-  padding: 15px;
-  background-color: #3b82f6;
-  color: #fff;
-  font-size: 1.1rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-}
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-backdrop.hidden { display: none; }
+.modal { background: #fff; width: 85%; max-width: 320px; padding: 20px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.close-btn { background: none; border: none; font-size: 28px; color: #94a3b8; cursor: pointer; }
+.modal-value { font-size: 32px; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e2e8f0; color: #1e293b; font-family: monospace; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.keypad button { padding: 15px 0; font-size: 20px; font-weight: bold; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; color: #334155; }
+.keypad button:active { background: #f1f5f9; }
+.apply-btn { width: 100%; margin-top: 15px; padding: 16px; background: #3b82f6; color: #fff; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; }
