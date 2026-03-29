@@ -1,31 +1,31 @@
 * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 body { font-family: sans-serif; background: #f0f2f5; height: 100dvh; display: flex; justify-content: center; overflow: hidden; }
 .app { width: 100%; max-width: 500px; display: flex; flex-direction: column; background: #fff; }
-.panel { padding: 8px; border-bottom: 1px solid #ddd; }
-.controls { display: grid; gap: 4px; }
-.field { display: flex; justify-content: space-between; font-size: 13px; }
-.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 4px; }
-.actions button { padding: 10px; font-size: 12px; font-weight: bold; border-radius: 6px; border: 1px solid #ccc; background: #e2e8f0; }
+.panel { padding: 10px; border-bottom: 1px solid #ddd; }
+h1 { font-size: 1.1rem; text-align: center; margin-bottom: 8px; }
+.controls { display: grid; gap: 6px; }
+.field { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+select { padding: 4px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px; max-width: 60%; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.actions button { padding: 12px 5px; font-size: 12px; font-weight: bold; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; }
 
-.board-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2px; background: #fafafa; overflow: hidden; }
+.board-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4px; background: #fafafa; }
 .board { display: grid; grid-template-columns: repeat(11, 1fr); width: 100%; aspect-ratio: 1/1; gap: 1px; background: #cbd5e1; }
-.cell { background: #fff; display: flex; align-items: center; justify-content: center; font-size: min(3.5vw, 16px); font-weight: bold; aspect-ratio: 1/1; }
+.cell { background: #fff; display: flex; align-items: center; justify-content: center; font-size: min(3.5vw, 18px); font-weight: bold; aspect-ratio: 1/1; }
 .cell.empty { background: #f1f5f9; }
 .cell.number { background: #e0f2fe; color: #0369a1; }
-.cell.operator, .cell.equal { background: #f8fafc; color: #64748b; }
-.cell.input { background: #fff; color: #1e293b; cursor: pointer; }
+.cell.operator, .cell.equal { background: #f8fafc; color: #64748b; font-size: min(4vw, 20px); }
+.cell.input { background: #fff; color: #1e293b; border: 1px solid #94a3b8; }
 .cell.input.is-empty { color: transparent; }
 .cell.input.is-selected { background: #eff6ff; outline: 2px solid #3b82f6; z-index: 10; }
 
-.footer-panel { border-top: 1px solid #eee; text-align: center; }
-#message { font-size: 12px; color: #ef4444; font-weight: bold; }
+.footer-panel { border-top: 1px solid #eee; text-align: center; padding: 10px; }
+#message { font-size: 13px; font-weight: bold; min-height: 1.5em; margin-bottom: 4px; }
 
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal-backdrop.hidden { display: none; }
-.modal { background: #fff; width: 85%; max-width: 300px; padding: 15px; border-radius: 12px; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; }
-.close-btn { background: none; border: none; font-size: 24px; color: #999; }
-.modal-value { font-size: 28px; text-align: center; background: #f1f5f9; padding: 8px; margin: 10px 0; border-radius: 6px; min-height: 45px; }
-.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.keypad button { padding: 12px 0; font-size: 18px; font-weight: bold; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
-.apply-btn { width: 100%; margin-top: 10px; padding: 14px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-weight: bold; }
+.modal { background: #fff; width: 85%; max-width: 320px; padding: 15px; border-radius: 15px; }
+.modal-value { font-size: 32px; text-align: center; background: #f1f5f9; padding: 10px; border-radius: 10px; margin: 10px 0; min-height: 60px; border: 1px solid #e2e8f0; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.keypad button { padding: 15px; font-size: 20px; font-weight: bold; border-radius: 10px; border: 1px solid #ddd; background: #fff; }
+.apply-btn { width: 100%; margin-top: 15px; padding: 16px; background: #3b82f6; color: #fff; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; }
