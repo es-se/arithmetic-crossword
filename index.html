@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Math Crossword</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,22 +11,26 @@
     <header class="panel">
       <h1>Math Crossword</h1>
       <div class="controls">
-        <label class="field"><span>難易度:</span>
+        <label class="field"><span>難易度</span>
           <select id="difficulty">
             <option value="easy">簡単</option>
             <option value="normal" selected>普通</option>
+            <option value="advanced">上級</option>
             <option value="hard">難問</option>
+            <option value="expert">超難問</option>
           </select>
         </label>
-        <label class="field"><span>ルール:</span>
+        <label class="field"><span>計算ルール</span>
           <select id="calcMode">
-            <option value="precedence" selected>四則優先</option>
-            <option value="leftToRight">左から順</option>
+            <option value="precedence" selected>四則演算優先（×÷先）</option>
+            <option value="leftToRight">左から順に計算</option>
           </select>
         </label>
         <div class="actions">
-          <button id="newGameBtn">新しく作る</button>
-          <button id="checkBtn">チェック</button>
+          <button id="newGameBtn" type="button">新しく作る</button>
+          <button id="checkBtn" type="button">チェック</button>
+          <button id="clearBtn" type="button">入力を消す</button>
+          <button id="answerBtn" type="button">答えを見る</button>
         </div>
       </div>
     </header>
@@ -34,13 +38,14 @@
       <div id="board" class="board"></div>
     </section>
     <footer class="panel footer-panel">
-      <p id="message">「新しく作る」を押してください。</p>
-      <p>© 2026 Tsubaki & My Lord</p>
+      <p id="message">「新しく作る」で問題を作成してください。</p>
+      <p>© 2026 髙松 浩史 & 北條 椿</p>
     </footer>
   </main>
+
   <div id="modalBackdrop" class="modal-backdrop hidden">
     <div class="modal">
-      <div class="modal-header"><h2>数字入力</h2><button id="closeModalBtn" class="close-btn">×</button></div>
+      <div class="modal-header"><h2>数字を入力</h2><button id="closeModalBtn" class="close-btn">×</button></div>
       <div id="modalValue" class="modal-value">_</div>
       <div class="keypad">
         <button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button>
@@ -48,7 +53,7 @@
         <button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button>
         <button data-action="delete">⌫</button><button data-key="0">0</button><button data-action="clear">C</button>
       </div>
-      <button id="applyModalBtn" class="apply-btn">入力する</button>
+      <button id="applyModalBtn" class="apply-btn">決定</button>
     </div>
   </div>
   <script src="app.js"></script>
