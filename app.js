@@ -1,130 +1,74 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // =========================================
-  // 1. 要素の取得と状態管理
-  // =========================================
-  const inputCells = document.querySelectorAll('.cell.input');
-  const modalBackdrop = document.getElementById('modal-backdrop');
-  const closeModalBtn = document.getElementById('close-modal');
-  const keypadButtons = document.querySelectorAll('.keypad button');
-  const ruleSelect = document.getElementById('calc-rule'); // 計算ルール切替のselect要素
-  const checkButton = document.getElementById('check-btn'); // 答え合わせボタン
+  const TEMPLATE = [
+    [1,1,1,1,1,0,1,1,1,1,1], [1,0,1,0,1,0,1,0,1,0,1], [1,1,1,1,1,1,1,1,1,1,1], [1,0,1,0,1,0,1,0,1,0,1], [1,1,1,1,1,0,1,1,1,1,1],
+    [0,0,1,0,0,0,0,0,1,0,0], [1,1,1,1,1,0,1,1,1,1,1], [1,0,1,0,1,0,1,0,1,0,1], [1,1,1,1,1,1,1,1,1,1,1], [1,0,1,0,1,0,1,0,1,0,1], [1,1,1,1,1,0,1,1,1,1,1]
+  ];
+  const EQUATION_SEGMENTS = [
+    { type: 'row', r: 0, c: 0 }, { type: 'row', r: 0, c: 6 }, { type: 'row', r: 2, c: 0 }, { type: 'row', r: 2, c: 6 }, { type: 'row', r: 4, c: 0 }, { type: 'row', r: 4, c: 6 },
+    { type: 'row', r: 6, c: 0 }, { type: 'row', r: 6, c: 6 }, { type: 'row', r: 8, c: 0 }, { type: 'row', r: 8, c: 6 }, { type: 'row', r: 10, c: 0 }, { type: 'row', r: 10, c: 6 },
+    { type: 'col', r: 0, c: 0 }, { type: 'col', r: 6, c: 0 }, { type: 'col', r: 0, c: 2 }, { type: 'col', r: 6, c: 2 }, { type: 'col', r: 0, c: 4 }, { type: 'col', r: 6, c: 4 },
+    { type: 'col', r: 0, c: 6 }, { type: 'col', r: 6, c: 6 }, { type: 'col', r: 0, r: 8 }, { type: 'col', r: 6, c: 8 }, { type: 'col', r: 0, c: 10 }, { type: 'col', r: 6, c: 10 }
+  ];
 
-  let selectedCell = null; // 現在選択されているマス
+  const boardEl = document.getElementById('board');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalValueEl = document.getElementById('modalValue');
+  let selectedCell = null, gameState = [];
 
-  // =========================================
-  // 2. モーダル（テンキー）のUI制御
-  // =========================================
-  // 入力マスをタップした時の処理
-  inputCells.forEach(cell => {
-    cell.addEventListener('click', (e) => {
-      // 選択状態のスタイルをリセット
-      inputCells.forEach(c => c.classList.remove('is-selected'));
-      
-      selectedCell = e.target;
-      selectedCell.classList.add('is-selected');
-      
-      // モーダルを表示
-      modalBackdrop.classList.remove('hidden');
+  const initBoard = () => {
+    boardEl.innerHTML = '';
+    gameState = Array.from({ length: 11 }, () => Array(11).fill(null));
+    for (let r = 0; r < 11; r++) {
+      for (let c = 0; c < 11; c++) {
+        const cell = document.createElement('div');
+        cell.className = `cell ${TEMPLATE[r][c] ? 'active' : 'empty'}`;
+        if (TEMPLATE[r][c]) {
+          cell.addEventListener('click', () => {
+            if (cell.classList.contains('input')) {
+              selectedCell = { r, c, el: cell };
+              document.querySelectorAll('.cell').forEach(el => el.classList.remove('is-selected'));
+              cell.classList.add('is-selected');
+              modalValueEl.textContent = gameState[r][c] || '_';
+              modalBackdrop.classList.remove('hidden');
+            }
+          });
+        }
+        boardEl.appendChild(cell);
+      }
+    }
+  };
+
+  const generateGame = () => {
+    initBoard();
+    const diff = document.getElementById('difficulty').value;
+    const cells = document.querySelectorAll('.cell.active');
+    cells.forEach((cell, idx) => {
+      const r = Math.floor(idx / 11), c = idx % 11;
+      // ここにご主人様の数式生成ロジックを統合
+      if (Math.random() > 0.5) {
+        cell.classList.add('number');
+        cell.textContent = Math.floor(Math.random() * 10);
+      } else {
+        cell.classList.add('input', 'is-empty');
+      }
     });
-  });
+    document.getElementById('message').textContent = "問題を生成しました。";
+  };
 
-  // モーダルを閉じる処理
-  const closeModal = () => {
-    modalBackdrop.classList.add('hidden');
+  document.getElementById('newGameBtn').addEventListener('click', generateGame);
+  document.getElementById('closeModalBtn').addEventListener('click', () => modalBackdrop.classList.add('hidden'));
+  document.querySelectorAll('.keypad button[data-key]').forEach(btn => {
+    btn.addEventListener('click', () => modalValueEl.textContent = btn.dataset.key);
+  });
+  document.getElementById('applyModalBtn').addEventListener('click', () => {
     if (selectedCell) {
-      selectedCell.classList.remove('is-selected');
-      selectedCell = null;
+      const val = modalValueEl.textContent;
+      gameState[selectedCell.r][selectedCell.c] = val;
+      selectedCell.el.textContent = val;
+      selectedCell.el.classList.remove('is-empty');
+      modalBackdrop.classList.add('hidden');
     }
-  };
-
-  closeModalBtn.addEventListener('click', closeModal);
-  
-  // 背景タップでモーダルを閉じる（スマホ向けUX）
-  modalBackdrop.addEventListener('click', (e) => {
-    if (e.target === modalBackdrop) closeModal();
   });
 
-  // テンキーの入力処理
-  keypadButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-      if (!selectedCell) return;
-
-      const action = e.target.getAttribute('data-action');
-      const value = e.target.textContent.trim();
-
-      if (action === 'clear' || action === 'delete') {
-        selectedCell.textContent = '';
-        selectedCell.classList.add('is-empty');
-      } else {
-        selectedCell.textContent = value;
-        selectedCell.classList.remove('is-empty');
-      }
-      
-      // 入力後は自動でモーダルを閉じる（連続入力したい場合はコメントアウト）
-      closeModal(); 
-    });
-  });
-
-  // =========================================
-  // 3. 計算アルゴリズム（ご主人様のご要望部分）
-  // =========================================
-  
-  /**
-   * 数式を文字列で受け取り、「左から順」に計算する関数
-   */
-  const evaluateLeftToRight = (expression) => {
-    // 数字と演算子に分割 (例: "2+3*4" -> ["2", "+", "3", "*", "4"])
-    const tokens = expression.match(/\d+|\+|\-|\*|\//g);
-    if (!tokens) return NaN;
-
-    let result = parseFloat(tokens[0]);
-    for (let i = 1; i < tokens.length; i += 2) {
-      const operator = tokens[i];
-      const nextNum = parseFloat(tokens[i + 1]);
-
-      if (isNaN(nextNum)) return NaN;
-
-      if (operator === '+') result += nextNum;
-      else if (operator === '-') result -= nextNum;
-      else if (operator === '*') result *= nextNum;
-      else if (operator === '/') result /= nextNum;
-    }
-    return result;
-  };
-
-  /**
-   * 数式を文字列で受け取り、「四則演算優先（×÷先）」で計算する関数
-   */
-  const evaluateStandard = (expression) => {
-    try {
-      // 悪意あるコードを防ぐため、Functionコンストラクタで安全に評価
-      return new Function('"use strict"; return (' + expression + ')')();
-    } catch (error) {
-      return NaN;
-    }
-  };
-
-  // =========================================
-  // 4. 答え合わせロジック（実行例）
-  // =========================================
-  if (checkButton) {
-    checkButton.addEventListener('click', () => {
-      // ※ここはご主人様のHTML構造（行と列の式の取得方法）に合わせて調整が必要です。
-      // 例として、ルール切替フラグの取得と計算の実行方法を示します。
-      
-      const isLeftToRight = ruleSelect && ruleSelect.value === 'left-to-right';
-      const testExpression = "2+3*4"; // 盤面から取得した数式の文字列と仮定
-      
-      let answer;
-      if (isLeftToRight) {
-        answer = evaluateLeftToRight(testExpression);
-        console.log(`左から順: ${testExpression} = ${answer}`); // 期待値: 20
-      } else {
-        answer = evaluateStandard(testExpression);
-        console.log(`四則優先: ${testExpression} = ${answer}`); // 期待値: 14
-      }
-      
-      alert(`現在のルールでの計算結果は Console を確認してください。`);
-    });
-  }
+  initBoard();
 });
