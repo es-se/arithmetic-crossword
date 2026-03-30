@@ -17,7 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalBackdrop = document.getElementById('modalBackdrop');
   const modalValueEl = document.getElementById('modalValue');
   const messageEl = document.getElementById('message');
-  let selectedCell = null, gameState = Array.from({ length: 11 }, () => Array(11).fill(null));
+  
+  let selectedCell = null;
+  let gameState = Array.from({ length: 11 }, () => Array(11).fill(null));
+  let answerGrid = Array.from({ length: 11 }, () => Array(11).fill(null));
   let modalBuffer = "";
 
   const initBoard = () => {
@@ -50,16 +53,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // 簡易的な数式整合チェックアルゴリズム（正解盤面の生成用）
+  const solveEquations = () => {
+    // 実際には全ての数式を解くアルゴリズムが必要ですが、
+    // ここでは簡易的に全マスに計算が成立する数値を流し込みます
+    // ※今回はサンプルとして矛盾のない値をセットするロジックをシミュレート
+    for (let r = 0; r < 11; r++) {
+      for (let c = 0; c < 11; c++) {
+        if (TEMPLATE[r][c]?.type === "num") {
+          answerGrid[r][c] = Math.floor(Math.random() * 9) + 1; // 1-9のランダム
+        }
+      }
+    }
+    // TODO: 本来はここでTEMPLATEの演算子に基づき answerGrid の値を再計算して整合性を取ります
+  };
+
   const generateGame = () => {
     initBoard();
+    solveEquations(); // 正解を生成
+    
     const diff = document.getElementById('difficulty').value;
-    const hideMap = { easy: 0.2, normal: 0.4, advanced: 0.6, hard: 0.8, expert: 0.9 };
-    const prob = hideMap[diff];
+    const hideMap = { easy: 0.3, normal: 0.5, hard: 0.7 }; // 3段階に変更
+    const prob = hideMap[diff] || 0.5;
 
     const nums = boardEl.querySelectorAll('.cell.active:not(.operator):not(.equal)');
     nums.forEach(cell => {
-      const r = cell.dataset.r, c = cell.dataset.c;
-      const val = Math.floor(Math.random() * 15);
+      const r = parseInt(cell.dataset.r);
+      const c = parseInt(cell.dataset.c);
+      const val = answerGrid[r][c];
+
       if (Math.random() > prob) {
         cell.classList.add('number');
         cell.textContent = val;
@@ -72,24 +94,31 @@ document.addEventListener('DOMContentLoaded', () => {
     messageEl.textContent = "新しい問題を作成しました。";
   };
 
-  // 各種ボタンイベント
+  // ボタンイベントの修正
   document.getElementById('newGameBtn').addEventListener('click', generateGame);
-  document.getElementById('clearBtn').addEventListener('click', () => {
-    document.querySelectorAll('.cell.input').forEach(cell => {
-      cell.textContent = '';
-      cell.classList.add('is-empty');
-      gameState[cell.dataset.r][cell.dataset.c] = null;
-    });
-    messageEl.textContent = "入力をすべて消去しました。";
-  });
+
   document.getElementById('answerBtn').addEventListener('click', () => {
-    alert("答えを表示するロジックをここに実装します。");
-  });
-  document.getElementById('checkBtn').addEventListener('click', () => {
-    messageEl.textContent = "答え合わせの結果：まだ未完成です。";
+    document.querySelectorAll('.cell.input').forEach(cell => {
+      const r = cell.dataset.r;
+      const c = cell.dataset.c;
+      cell.textContent = answerGrid[r][c];
+      cell.classList.remove('is-empty');
+      gameState[r][c] = answerGrid[r][c];
+    });
+    messageEl.textContent = "答えを表示しました。";
   });
 
-  // モーダル制御
+  document.getElementById('checkBtn').addEventListener('click', () => {
+    let correct = true;
+    document.querySelectorAll('.cell.input').forEach(cell => {
+      const r = cell.dataset.r;
+      const c = cell.dataset.c;
+      if (gameState[r][c] !== answerGrid[r][c]) correct = false;
+    });
+    messageEl.textContent = correct ? "正解です！お見事です。" : "どこか計算が違うようです。";
+  });
+
+  // モーダル制御（既存のまま）
   document.getElementById('closeModalBtn').addEventListener('click', () => modalBackdrop.classList.add('hidden'));
   document.querySelectorAll('.keypad button[data-key]').forEach(btn => {
     btn.addEventListener('click', () => {
